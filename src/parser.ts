@@ -88,4 +88,5 @@ export default function (s: string, vars: string[]) {
   const tokens = SplitIntoTokens(s, vars)
   console.log(tokens)
   // Check regular syntactic errors
+  return tokens
 }

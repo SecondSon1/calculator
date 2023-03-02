@@ -25,7 +25,7 @@
           <input v-model="constant.name" :ref="setConstantRef" />
         </td>
         <td>
-          <input v-model="constant.value" type="text" @input="recalculate" />
+          <input v-model="constant.value" type="number" @input="recalculate" />
         </td>
       </tr>
       <tr>
@@ -58,7 +58,7 @@
           {{ variable.name }}
         </th>
         <th class="err-column">
-          ±{{ variable.name }}
+          Δ{{ variable.name }}
         </th>
       </template>
       <template v-for="variable in formula_variables" :key="variable.name">
@@ -66,7 +66,7 @@
           {{ variable.name }}
         </th>
         <th class="form-err-column">
-          ±{{ variable.name }}
+          Δ{{ variable.name }}
         </th>
       </template>
     </tr>
@@ -91,6 +91,7 @@
 
     </tr>
   </table>
+  <button v-on:click="addNewTest" style="margin-top:20px;">Add new test</button>
 </template>
 
 <script>
@@ -106,7 +107,7 @@ const gravity = new Mul(new NamedConst('G'),
 export default defineComponent({
   data () {
     return {
-      tests: 3,
+      tests: 10,
       values: [
         {
           name: 'm1',
@@ -173,6 +174,10 @@ export default defineComponent({
       this.new_stuff.variable = ''
       this.refs.refocus.need = true
       this.refs.refocus.to = 0
+      this.resize()
+    },
+    addNewTest () {
+      this.tests++
       this.resize()
     },
     addNewConstant () {
@@ -253,7 +258,7 @@ export default defineComponent({
   },
   beforeMount () {
     document.title = 'Calculator'
-    this.tests = 3
+    this.tests = 10
     this.resize()
   },
   mounted () {
@@ -337,6 +342,10 @@ table, tr, td, th {
 
 .var-column, .form-var-column {
   border-left: 3px solid grey;
+}
+
+input {
+  border:none;
 }
 
 </style>
