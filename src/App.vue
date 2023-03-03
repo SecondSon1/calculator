@@ -1,104 +1,106 @@
 <template>
-  <div id="tables">
-    <table id="variable-table" class="param-table"> <!-- Table of variables -->
+  <div>
+    <div id="tables">
+      <table id="variable-table" class="param-table"> <!-- Table of variables -->
+        <tr>
+          <th>Variable name</th>
+        </tr>
+        <tr v-for="(variable, ind) in values" :key="ind">
+          <td>
+            <input v-model="variable.name" :ref="setVariableRef" />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input v-model="new_stuff.variable" placeholder="Enter new name here" @input="addNewVariable"/>
+          </td>
+        </tr>
+      </table>
+      <table id="const-table" class="param-table"> <!-- Table of consts -->
+        <tr>
+          <th>Constant's name</th>
+          <th>Constant's value</th>
+        </tr>
+        <tr v-for="(constant, ind) in constants" :key="ind">
+          <td>
+            <input v-model="constant.name" :ref="setConstantRef" />
+          </td>
+          <td>
+            <input v-model="constant.value" type="number" @input="recalculate" />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input v-model="new_stuff.constant" placeholder="Enter new name here" @input="addNewConstant"/>
+          </td>
+        </tr>
+      </table>
+      <table id="formula-table" class="param-table"> <!-- Table of formulas -->
+        <tr>
+          <th>Variable name</th>
+          <th>Formula</th>
+        </tr>
+        <tr v-for="(variable, ind) in formula_variables" :key="ind">
+          <td>
+            <input v-model="variable.name" :ref="setFormulaRef" />
+            <span v-if="!variable.working">(Wrong)</span>
+          </td>
+          <td><input v-model="variable.formulaStr" @blur="recalculate" /></td>
+        </tr>
+        <tr>
+          <td>
+            <input v-model="new_stuff.formula" placeholder="Enter new name here" @input="addNewFormula"/>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <table id="main-table"> <!-- Table of values -->
       <tr>
-        <th>Variable name</th>
-      </tr>
-      <tr v-for="(variable, ind) in values" :key="ind">
-        <td>
-          <input v-model="variable.name" :ref="setVariableRef" />
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <input v-model="new_stuff.variable" placeholder="Enter new name here" @input="addNewVariable"/>
-        </td>
-      </tr>
-    </table>
-    <table id="const-table" class="param-table"> <!-- Table of consts -->
-      <tr>
-        <th>Constant's name</th>
-        <th>Constant's value</th>
-      </tr>
-      <tr v-for="(constant, ind) in constants" :key="ind">
-        <td>
-          <input v-model="constant.name" :ref="setConstantRef" />
-        </td>
-        <td>
-          <input v-model="constant.value" type="number" @input="recalculate" />
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <input v-model="new_stuff.constant" placeholder="Enter new name here" @input="addNewConstant"/>
-        </td>
-      </tr>
-    </table>
-    <table id="formula-table" class="param-table"> <!-- Table of formulas -->
-      <tr>
-        <th>Variable name</th>
-        <th>Formula</th>
-      </tr>
-      <tr v-for="(variable, ind) in formula_variables" :key="ind">
-        <td>
-          <input v-model="variable.name" :ref="setFormulaRef" />
-          <span v-if="!variable.working">(Wrong)</span>
-        </td>
-        <td><input v-model="variable.formulaStr" v-on:input="recalculate" /></td>
-      </tr>
-      <tr>
-        <td>
-          <input v-model="new_stuff.formula" placeholder="Enter new name here" @input="addNewFormula"/>
-        </td>
-      </tr>
-    </table>
-  </div>
-  <table id="main-table"> <!-- Table of values -->
-    <tr>
-      <th>Test Number</th>
-      <template v-for="variable in values" :key="variable.name">
-        <th class="var-column">
-          {{ variable.name }}
-        </th>
-        <th class="err-column">
-          Δ{{ variable.name }}
-        </th>
-      </template>
-      <template v-for="variable in formula_variables" :key="variable.name">
-        <template v-if="variable.working">
-          <th class="form-var-column">
+        <th>Test Number</th>
+        <template v-for="variable in values" :key="variable.name">
+          <th class="var-column">
             {{ variable.name }}
           </th>
-          <th class="form-err-column">
+          <th class="err-column">
             Δ{{ variable.name }}
           </th>
         </template>
-      </template>
-    </tr>
-    <tr v-for="(number, index) in tests" :key="index">
-      <td>{{ number }}</td>
-      <template v-for="variable in values" :key="variable.name">
-        <th class="var-column">
-          <input type="number" v-model="variable.values[index]" @input="recalculate" />
-        </th>
-        <th class="err-column">
-          <input type="number" v-model="variable.errors[index]" @input="recalculate" />
-        </th>
-      </template>
-      <template v-for="variable in formula_variables" :key="variable.name">
-        <template v-if="variable.working">
-          <th class="form-var-column">
+        <template v-for="variable in formula_variables" :key="variable.name">
+          <template v-if="variable.working">
+            <th class="form-var-column">
+              {{ variable.name }}
+            </th>
+            <th class="form-err-column">
+              Δ{{ variable.name }}
+            </th>
+          </template>
+        </template>
+      </tr>
+      <tr v-for="(number, index) in tests" :key="index">
+        <td>{{ number }}</td>
+        <template v-for="variable in values" :key="variable.name">
+          <th class="var-column">
             <input type="number" v-model="variable.values[index]" @input="recalculate" />
           </th>
-          <th class="form-err-column">
+          <th class="err-column">
             <input type="number" v-model="variable.errors[index]" @input="recalculate" />
           </th>
         </template>
-      </template>
+        <template v-for="variable in formula_variables" :key="variable.name">
+          <template v-if="variable.working">
+            <th class="form-var-column">
+              <input type="number" v-model="variable.values[index]" @input="recalculate" />
+            </th>
+            <th class="form-err-column">
+              <input type="number" v-model="variable.errors[index]" @input="recalculate" />
+            </th>
+          </template>
+        </template>
 
-    </tr>
-  </table>
-  <button v-on:click="addNewTest" style="margin-top:20px;">Add new test</button>
+      </tr>
+    </table>
+    <button v-on:click="addNewTest" style="margin-top:20px;">Add new test</button>
+  </div>
 </template>
 
 <script>
@@ -346,6 +348,7 @@ div#tables {
 
 #main-table {
   width: 90%;
+  background-color: white;
   tr {
     height: 20px;
     text-align: right;
@@ -357,6 +360,7 @@ div#tables {
 
 .param-table {
   margin-right: 30px;
+  background-color: white;
   tr {
     width: 70px;
   }
@@ -366,15 +370,18 @@ div#tables {
 }
 
 table, tr, td, th {
+  background-color: white;
   border: 1px solid grey;
   border-collapse: collapse;
 }
 
 .var-column, .form-var-column {
+  background-color: white;
   border-left: 3px solid grey;
 }
 
 input {
+  background-color: white;
   border: none;
 }
 
