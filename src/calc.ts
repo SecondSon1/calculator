@@ -300,7 +300,9 @@ export class Ln extends CalcType {
 
   override Compute (vars: VariableMap, namedConstants: NamedConstMap): CalcValue {
     const argVal = this.antiLogarithm.Compute(vars, namedConstants)
-    return new CalcValue(Math.log(argVal.value), 0) // TODO
+    const absolute = argVal.relativeError
+    const val = Math.log(argVal.value)
+    return new CalcValue(val, absolute / val) // TODO
   }
 
   override toString (): string {

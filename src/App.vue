@@ -40,8 +40,11 @@
         <th>Formula</th>
       </tr>
       <tr v-for="(variable, ind) in formula_variables" :key="ind">
-        <td><input v-model="variable.name" :ref="setFormulaRef" /></td>
-        <td><input :value="variable.formula.toString()" /></td>
+        <td>
+          <input v-model="variable.name" :ref="setFormulaRef" />
+          <span v-if="!variable.working">(Wrong)</span>
+        </td>
+        <td><input v-model="variable.formulaStr" v-on:input="recalculate" /></td>
       </tr>
       <tr>
         <td>
@@ -62,12 +65,14 @@
         </th>
       </template>
       <template v-for="variable in formula_variables" :key="variable.name">
-        <th class="form-var-column">
-          {{ variable.name }}
-        </th>
-        <th class="form-err-column">
-          Δ{{ variable.name }}
-        </th>
+        <template v-if="variable.working">
+          <th class="form-var-column">
+            {{ variable.name }}
+          </th>
+          <th class="form-err-column">
+            Δ{{ variable.name }}
+          </th>
+        </template>
       </template>
     </tr>
     <tr v-for="(number, index) in tests" :key="index">
@@ -81,12 +86,14 @@
         </th>
       </template>
       <template v-for="variable in formula_variables" :key="variable.name">
-        <th class="form-var-column">
-          <input type="number" v-model="variable.values[index]" @input="recalculate" />
-        </th>
-        <th class="form-err-column">
-          <input type="number" v-model="variable.errors[index]" @input="recalculate" />
-        </th>
+        <template v-if="variable.working">
+          <th class="form-var-column">
+            <input type="number" v-model="variable.values[index]" @input="recalculate" />
+          </th>
+          <th class="form-err-column">
+            <input type="number" v-model="variable.errors[index]" @input="recalculate" />
+          </th>
+        </template>
       </template>
 
     </tr>
@@ -101,29 +108,29 @@ import { defineComponent } from 'vue'
 
 import parser from './parser'
 
-const gravity = new Mul(new NamedConst('G'),
-  new Div(new Mul(new Variable('m1'), new Variable('m2')), new Exp(new Variable('r'), new Const(2))))
+// const gravity = new Mul(new NamedConst('G'), new Div(new Mul(new Variable('m1'),
+//   new Variable('m2')), new Exp(new Variable('r'), new Const(2))))
 
 export default defineComponent({
   data () {
     return {
-      tests: 10,
+      tests: 3,
       values: [
-        {
-          name: 'm1',
-          values: [],
-          errors: []
-        },
-        {
-          name: 'm2',
-          values: [],
-          errors: []
-        },
-        {
-          name: 'r',
-          values: [],
-          errors: []
-        }
+        // {
+        //   name: 'm1',
+        //   values: [],
+        //   errors: []
+        // },
+        // {
+        //   name: 'm2',
+        //   values: [],
+        //   errors: []
+        // },
+        // {
+        //   name: 'r',
+        //   values: [],
+        //   errors: []
+        // }
       ],
       constants: [
         {
@@ -132,12 +139,7 @@ export default defineComponent({
         }
       ],
       formula_variables: [
-        {
-          name: 'F',
-          values: [],
-          errors: [],
-          formula: gravity
-        }
+
       ],
       new_stuff: {
         variable: '',
@@ -190,12 +192,39 @@ export default defineComponent({
       this.refs.refocus.to = 1
       this.recalculate()
     },
+    parseFormulas () {
+      const vars = []
+      const namedConsts = []
+      for (const a of this.values) {
+        vars.push(a.name)
+      }
+      for (const a of this.constants) {
+        namedConsts.push(a.name)
+      }
+      for (const a of this.formula_variables) {
+        vars.push(a.name)
+      }
+      for (const variable of this.formula_variables) {
+        if (variable.formulaStr === '') {
+          variable.working = false
+          continue
+        }
+        try {
+          variable.formula = parser(variable.formulaStr, vars, namedConsts)
+          variable.working = true
+        } catch (e) {
+          variable.working = false
+        }
+      }
+    },
     addNewFormula () {
       this.formula_variables.push({
         name: this.new_stuff.formula,
         formula: new CalcType(),
         values: [],
-        errors: []
+        errors: [],
+        formulaStr: '',
+        working: false
       })
       this.new_stuff.formula = ''
       this.refs.refocus.need = true
@@ -226,6 +255,7 @@ export default defineComponent({
       this.recalculate()
     },
     recalculate () {
+      this.parseFormulas()
       const namedConstMap = {}
       for (const constant of this.constants) {
         namedConstMap[constant.name] = constant.value
@@ -257,26 +287,24 @@ export default defineComponent({
     }
   },
   beforeMount () {
-    document.title = 'Calculator'
-    this.tests = 10
+    document.title = 'KMax'
+    this.tests = 1
     this.resize()
+    // this.formula_variables.push({
+    //   name: 'F',
+    //   values: [],
+    //   errors: [],
+    //   formula: new CalcType(),
+    //   formulaStr: 'G*(m1*m2)/r^2',
+    //   working: true
+    // })
   },
   mounted () {
-    const vars = []
-    for (const a of this.values) {
-      vars.push(a.name)
-    }
-    for (const a of this.constants) {
-      vars.push(a.name)
-    }
-    for (const a of this.formula_variables) {
-      vars.push(a.name)
-    }
-    try {
-      parser('G*(m1*m2)/r^2', vars)
-    } catch (e) {
-      console.log('parser fail: ' + e)
-    }
+    // try {
+    //   console.log(parser('G*(m1*m2)/r^2', vars, namedConsts))
+    // } catch (e) {
+    //   console.log('parser fail: ' + e)
+    // }
   },
   beforeUpdate () {
     this.refs.variables = []
@@ -317,11 +345,13 @@ div#tables {
 }
 
 #main-table {
-  width: 1000px;
-  tr * {
-    width: 70px;
-    height: 10px;
+  width: 90%;
+  tr {
+    height: 20px;
     text-align: right;
+    input {
+      width: 80%;
+    }
   }
 }
 
@@ -345,7 +375,7 @@ table, tr, td, th {
 }
 
 input {
-  border:none;
+  border: none;
 }
 
 </style>
