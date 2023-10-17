@@ -44,7 +44,7 @@
           <input v-model="variable.name" :ref="setFormulaRef" />
           <span v-if="!variable.working">(Wrong)</span>
         </td>
-        <td><input v-model="variable.formulaStr" v-on:input="recalculate" /></td>
+        <td><input v-model="variable.formulaStr" @blur="recalculate" /></td>
       </tr>
       <tr>
         <td>
@@ -102,8 +102,7 @@
 </template>
 
 <script>
-// TODO: Make variable len max 5
-import { Div, Mul, Variable, NamedConst, Exp, Const, CalcType } from './calc'
+import { CalcType } from './calc'
 import { defineComponent } from 'vue'
 
 import parser from './parser'
@@ -209,10 +208,11 @@ export default defineComponent({
           variable.working = false
           continue
         }
-        try {
-          variable.formula = parser(variable.formulaStr, vars, namedConsts)
+        const result = parser(variable.formulaStr, vars, namedConsts)
+        if (result.success) {
+          variable.formula = result.value
           variable.working = true
-        } catch (e) {
+        } else {
           variable.working = false
         }
       }

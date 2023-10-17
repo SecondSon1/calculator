@@ -8,7 +8,6 @@ import {
   Log2,
   Log10,
   Sqrt,
-  CalcValue,
   Variable,
   NamedConst,
   CalcType,
@@ -42,9 +41,10 @@ function IsDigit (s: string) {
   return '0'.charCodeAt(0) <= s.charCodeAt(0) && s.charCodeAt(0) <= '9'.charCodeAt(0)
 }
 
-function IsFunction (s: string) {
-  return s === 'ln' || s === 'log2' || s === 'log10' || s === 'sqrt'
-}
+// TODO
+// function IsFunction (s: string) {
+//   return s === 'ln' || s === 'log2' || s === 'log10' || s === 'sqrt'
+// }
 
 function IsOperation (s: string) {
   return s === '+' || s === '-' || s === '*' || s === '/' || s === '^'
@@ -116,6 +116,7 @@ function SplitIntoTokens (s: string, vars: string[], namedConsts: string[]) {
 let token: Token
 let tokens: Token[]
 let tokenIndex: number
+let crashed: boolean
 
 function GetNext () {
   if (tokenIndex !== tokens.length - 1) {
@@ -126,10 +127,14 @@ function GetNext () {
 function Expect (tt: TokenType, val: string) {
   if (token.type !== tt || (val !== '' && val !== token.token)) {
     console.log('expected ', TokenType[tt], ', but got ', TokenType[token.type])
+    crashed = true
   }
 }
 
 function Function (): CalcType {
+  if (crashed) {
+    return new Const(1)
+  }
   Expect(TokenType.Function, '')
   const func = token.token
   GetNext()
@@ -152,6 +157,9 @@ function Function (): CalcType {
 }
 
 function Parens (): CalcType {
+  if (crashed) {
+    return new Const(1)
+  }
   Expect(TokenType.Paren, '(')
   GetNext()
   const ans = AdditionPriority()
@@ -161,6 +169,9 @@ function Parens (): CalcType {
 }
 
 function AdditionPriority (): CalcType {
+  if (crashed) {
+    return new Const(1)
+  }
   let begin = '+'
   if (token.type === TokenType.Operation && (token.token === '+' || token.token === '-')) {
     begin = token.token
@@ -184,6 +195,9 @@ function AdditionPriority (): CalcType {
 }
 
 function MultiplicationPriority (): CalcType {
+  if (crashed) {
+    return new Const(1)
+  }
   let ans = ExponentiationPriority()
   while (token.type === TokenType.Operation && (token.token === '*' || token.token === '/')) {
     const mul = token.token === '*'
@@ -199,6 +213,9 @@ function MultiplicationPriority (): CalcType {
 }
 
 function ExponentiationPriority (): CalcType {
+  if (crashed) {
+    return new Const(1)
+  }
   const ans: CalcType[] = [FinalPriority()]
   while (token.type === TokenType.Operation && token.token === '^') {
     GetNext()
@@ -215,6 +232,9 @@ function ExponentiationPriority (): CalcType {
 }
 
 function FinalPriority (): CalcType {
+  if (crashed) {
+    return new Const(1)
+  }
   if (token.type === TokenType.Variable || token.type === TokenType.NamedConst) {
     const variable = token.type === TokenType.Variable
     const name = token.token
@@ -226,6 +246,7 @@ function FinalPriority (): CalcType {
     }
   } else if (token.type === TokenType.Number) {
     const val = +token.token
+    GetNext()
     return new Const(val)
   } else if (token.type === TokenType.Function) {
     return Function()
@@ -235,9 +256,19 @@ function FinalPriority (): CalcType {
   }
 }
 
-export default function (s: string, vars: string[], namedConsts: string[]): CalcType {
+class Result {
+  success = true
+  value: CalcType = new Const(1)
+}
+
+export default function (s: string, vars: string[], namedConsts: string[]): Result {
   tokens = SplitIntoTokens(s, vars, namedConsts)
   tokenIndex = 0
   token = tokens[0]
-  return AdditionPriority()
+  crashed = false
+  const value = AdditionPriority()
+  return {
+    success: !crashed,
+    value: value
+  }
 }

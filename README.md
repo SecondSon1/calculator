@@ -1,24 +1,10 @@
 # calculator
 
-## Project setup
-```
-npm install
-```
+Калькулятор для лабораторных работ по физике. Во время нескольких замеров позволяет просто вычислять остальные
+значения с их погрешностями. Поддерживает ввод формулы с операциями сложения, вычитания, умножения, деления и
+возведения в степень.
 
-### Compiles and hot-reloads for development
+## Запуск
 ```
-npm run serve
+npm serve
 ```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
