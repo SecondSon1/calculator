@@ -1,0 +1,51 @@
+@media screen{
+    body{
+        width: 100vw;
+        height: 100vh;
+        padding: 0;
+        margin: 0;
+        background-color: #BBABCD;
+    }
+
+    .upper_block{
+        width: 100vw;
+        height: 15vh;
+        background-color: #2C3C4C;
+    }
+
+    .main_block{
+        width: 100vw;
+        height: 85vh;
+        background-color: #BBABCD;
+    }
+
+    .lower_block{
+        width: 100vw;
+        height: 20vh;
+        background-color: #2C3C4C;
+        font-size: 2vh;
+        padding-top: 15vh;
+        padding-left: 20vw;
+        color: white;
+    }
+
+    .big_block{
+        width: 100vw;
+        height: 120vh;
+        padding: 0;
+        margin: 0;
+    }
+
+    .logo_block{
+        height: 15vh;
+    }
+
+    .logo_img{
+        width: 15vh;
+        height: 15vh;
+    }
+
+    .link{
+        color: white;
+    }
+}
